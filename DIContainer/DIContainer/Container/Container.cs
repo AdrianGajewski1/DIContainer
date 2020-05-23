@@ -1,4 +1,5 @@
 ﻿using DIContainer.Container.Service;
+using System;
 
 namespace DIContainer.Container
 {
@@ -17,6 +18,18 @@ namespace DIContainer.Container
 
             if (instance == null)
                 return default;
+
+            return (T)instance;
+        }
+
+        public T GetTransient<T>()
+        {
+            var obj = _services.TransientServices[typeof(T)];
+
+            if (obj == null)
+                return default;
+
+            var instance = Activator.CreateInstance(obj);
 
             return (T)instance;
         }

@@ -9,11 +9,13 @@ namespace DIContainer
         {
             var services = new ServiceCollection();
             services.AddSingleton<Test>();
-
+            services.AddTransient<ITest, Test>();
             var container = services.BuildContainer();
 
             Console.WriteLine(container.GetSingleton<Test>().GetRandomNumber());
             Console.WriteLine(container.GetSingleton<Test>().GetRandomNumber());
+            Console.WriteLine(container.GetTransient<ITest>().GetRandomNumber());
+            Console.WriteLine(container.GetTransient<ITest>().GetRandomNumber());
             Console.ReadLine();
         }
     }

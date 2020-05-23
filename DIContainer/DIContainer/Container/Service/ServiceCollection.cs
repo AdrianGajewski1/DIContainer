@@ -20,6 +20,12 @@ namespace DIContainer.Container.Service
             singletonServices.Add(instance);
         }
 
+        public void AddTransient<TService, TImplementaion>() where TImplementaion : TService 
+        {
+            var key = typeof(TService);
+            var value = typeof(TImplementaion);
+            transientServices.Add(key, value);
+        }
 
         public Container BuildContainer()
         {
