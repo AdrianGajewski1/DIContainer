@@ -1,5 +1,6 @@
 ﻿using DIContainer.Container.Service;
 using System;
+using System.Linq;
 
 namespace DIContainer.Container
 {
@@ -10,16 +11,27 @@ namespace DIContainer.Container
         public Container(Services services)
         {
             _services = services;
-        }   
+        }
+        private object GetService(object type)
+        {
+            ServiceInfo instance;
+
+            instance = _services.SingletonServices[type];
+
+            if (instance == null)
+                instance = _services.TransientServices[type];
+
+            if (instance == null)
+                throw new NullReferenceException($"Service of type {instance.ServiceType} not found");
+
+            return instance.ServiceImplementation;
+        }
 
         public T GetSingleton<T>()
         {
-            var instance = _services.SingletonServices.Find(type => type.GetType() == typeof(T));
+            var service = _services.SingletonServices[typeof(T)];
 
-            if (instance == null)
-                return default;
-
-            return (T)instance;
+            return (T)service.ServiceImplementation;
         }
 
         public T GetTransient<T>()
@@ -29,7 +41,10 @@ namespace DIContainer.Container
             if (obj == null)
                 return default;
 
-            var instance = Activator.CreateInstance(obj);
+            var contructor = (Type)obj.ServiceType;
+            var consructorParams = contructor.GetConstructors().First().GetParameters().Select(x => GetService(x));
+
+            var instance = Activator.CreateInstance(obj.ServiceImplementation as Type);
 
             return (T)instance;
         }
