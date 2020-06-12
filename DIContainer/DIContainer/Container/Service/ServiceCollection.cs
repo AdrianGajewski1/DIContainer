@@ -16,12 +16,9 @@ namespace DIContainer.Container.Service
         }
 
 
-        private object GetService<T>()
+        private T GetService<T>()
         {
-            var service = GetService(typeof(T));
-
-            return service;
-         
+           return (T)GetService(typeof(T));
         }
 
         private object GetService(object type)
@@ -39,7 +36,7 @@ namespace DIContainer.Container.Service
             if (instance == null)
                 throw new NullReferenceException($"Service of type {instance.ServiceType} not found");
 
-            return instance.ServiceImplementation;
+            return instance.ServiceType;
         }
 
         public void AddSingleton<T>()
@@ -49,40 +46,29 @@ namespace DIContainer.Container.Service
             if (type.IsAbstract || type.IsInterface)
                 throw new Exception("Cannot instantiate abstract classes");
 
-            var constructor = type.GetConstructors().First();
-
-            if (constructor != null)
+            
+            //For now just try to get parametless contructor...
+            if(type.GetConstructor(Type.EmptyTypes) != null)
             {
-                
-                var constructorParams = constructor.GetParameters();
-
-                if(constructorParams != null)
+                singletonServices.Add(type, new ServiceInfo
                 {
-                    List<object> serviceParams = new List<object>();
+                    ServiceImplementation = Activator.CreateInstance(type),
+                    ServiceLifeTime = ServiceLifeTime.Singleton,
+                    ServiceType = type
+                });
 
-                    foreach (var item in constructorParams)
-                    {
-                        serviceParams.Add(GetService(item.ParameterType));
-                    }
-
-
-                    singletonServices.Add(type, new ServiceInfo
-                    {
-                        ServiceImplementation = Activator.CreateInstance(type, serviceParams),
-                        ServiceType = type,
-                        ServiceLifeTime = ServiceLifeTime.Singleton
-                    });
-
-                    return;
-                }
-                
+                return;
             }
+
+            var constructor = type.GetConstructors().First();
+            var parametersTypes = constructor.GetParameters().Select(x => x.ParameterType);
+            var dependencies = parametersTypes.Select(x => GetService(x)).ToArray();
 
             singletonServices.Add(type, new ServiceInfo
             {
-                ServiceImplementation = Activator.CreateInstance(type),
-                ServiceType = type,
-                ServiceLifeTime = ServiceLifeTime.Singleton
+                ServiceImplementation = Activator.CreateInstance(type, dependencies),
+                ServiceLifeTime = ServiceLifeTime.Singleton,
+                ServiceType = type
             });
         }
 

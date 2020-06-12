@@ -9,7 +9,6 @@ namespace DIContainer
         {
             var services = new ServiceCollection();
             services.AddTransient<IRandomNumber, RandomNumber>();
-            services.AddTransient<ITest, Test>();
             services.AddSingleton<RandomNumber>();
             services.AddSingleton<Test>();
             var container = services.BuildContainer();
@@ -34,7 +33,7 @@ namespace DIContainer
 
         Random rnd = new Random();
 
-        public Test(RandomNumber random)
+        public Test(IRandomNumber random)
         {
             number = rnd.Next(0, 10);
             randomNumbers = random;
